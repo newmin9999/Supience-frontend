@@ -13,3 +13,5 @@ resources/sass/.sass-cache/
 resources/.arch-internal-preview.css
 .arch-internal-preview.css
 node_modules
+# Next.js 빌드 결과물
+.next/
