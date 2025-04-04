@@ -1,7 +1,42 @@
 'use client';
 import React from 'react';
-import Link from 'next/link';
 import { FaBullhorn, FaComments, FaQuestionCircle, FaCalendarAlt } from 'react-icons/fa';
+import BoardCard from '@/components/BoardCard';
+
+const boards = [
+  {
+    href: '/board/notices',
+    icon: FaBullhorn,
+    title: '공지사항',
+    description: '중요한 공지사항을 확인하세요',
+    iconColor: 'text-blue-600',
+    bgColor: 'bg-blue-100',
+  },
+  {
+    href: '/board/free',
+    icon: FaComments,
+    title: '자유게시판',
+    description: '자유로운 의견을 나눠보세요',
+    iconColor: 'text-green-600',
+    bgColor: 'bg-green-100',
+  },
+  {
+    href: '/board/qna',
+    icon: FaQuestionCircle,
+    title: 'Q&A',
+    description: '질문과 답변을 주고받으세요',
+    iconColor: 'text-purple-600',
+    bgColor: 'bg-purple-100',
+  },
+  {
+    href: '/board/reservation',
+    icon: FaCalendarAlt,
+    title: '운동 예약',
+    description: '운동 시간을 예약하세요',
+    iconColor: 'text-orange-600',
+    bgColor: 'bg-orange-100',
+  },
+];
 
 export default function Home() {
   return (
@@ -17,49 +52,17 @@ export default function Home() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {/* 공지사항 */}
-          <Link href="/board/notices" className="group">
-            <div className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-              <div className="flex items-center justify-center w-12 h-12 bg-blue-100 rounded-lg mb-4 group-hover:bg-blue-200 transition-colors duration-300">
-                <FaBullhorn className="w-6 h-6 text-blue-600" />
-              </div>
-              <h2 className="text-xl font-semibold text-gray-900 mb-2">공지사항</h2>
-              <p className="text-gray-600">중요한 공지사항을 확인하세요</p>
-            </div>
-          </Link>
-
-          {/* 자유게시판 */}
-          <Link href="/board/free" className="group">
-            <div className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-              <div className="flex items-center justify-center w-12 h-12 bg-green-100 rounded-lg mb-4 group-hover:bg-green-200 transition-colors duration-300">
-                <FaComments className="w-6 h-6 text-green-600" />
-              </div>
-              <h2 className="text-xl font-semibold text-gray-900 mb-2">자유게시판</h2>
-              <p className="text-gray-600">자유로운 의견을 나눠보세요</p>
-            </div>
-          </Link>
-
-          {/* Q&A */}
-          <Link href="/board/qna" className="group">
-            <div className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-              <div className="flex items-center justify-center w-12 h-12 bg-purple-100 rounded-lg mb-4 group-hover:bg-purple-200 transition-colors duration-300">
-                <FaQuestionCircle className="w-6 h-6 text-purple-600" />
-              </div>
-              <h2 className="text-xl font-semibold text-gray-900 mb-2">Q&A</h2>
-              <p className="text-gray-600">질문과 답변을 주고받으세요</p>
-            </div>
-          </Link>
-
-          {/* 운동 예약 */}
-          <Link href="/board/reservation" className="group">
-            <div className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-              <div className="flex items-center justify-center w-12 h-12 bg-orange-100 rounded-lg mb-4 group-hover:bg-orange-200 transition-colors duration-300">
-                <FaCalendarAlt className="w-6 h-6 text-orange-600" />
-              </div>
-              <h2 className="text-xl font-semibold text-gray-900 mb-2">운동 예약</h2>
-              <p className="text-gray-600">운동 시간을 예약하세요</p>
-            </div>
-          </Link>
+          {boards.map((board) => (
+            <BoardCard
+              key={board.href}
+              href={board.href}
+              icon={board.icon}
+              title={board.title}
+              description={board.description}
+              iconColor={board.iconColor}
+              bgColor={board.bgColor}
+            />
+          ))}
         </div>
       </div>
     </main>
