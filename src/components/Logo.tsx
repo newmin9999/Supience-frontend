@@ -1,13 +1,19 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 
 export default function Logo() {
   return (
-    <Link href="/" className="inline-block">
-      <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center text-white font-bold text-xl hover:from-blue-600 hover:to-indigo-700 transition-all duration-200">
-        S
-      </div>
+    <Link href="/" className="flex items-center">
+      <Image
+        src="/images/logo.ai"
+        alt="Supience Logo"
+        width={40}
+        height={40}
+        className="mr-2"
+      />
+      <span className="text-xl font-bold text-gray-900">Supience</span>
     </Link>
   );
 } 
