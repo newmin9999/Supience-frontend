@@ -1,178 +1,125 @@
 'use client';
 
-import { useState } from 'react';
-import { FaCalendarAlt, FaUsers, FaMapMarkerAlt, FaClock, FaUser, FaComment } from 'react-icons/fa';
-import Logo from '@/components/Logo';
-
-interface Comment {
-  id: string;
-  author: string;
-  content: string;
-  createdAt: string;
-}
-
-interface WorkoutSchedule {
-  id: string;
-  title: string;
-  date: string;
-  time: string;
-  location: string;
-  maxParticipants: number;
-  currentParticipants: number;
-  description: string;
-  createdBy: string;
-}
-
-// 임시 데이터
-const mockSchedule: WorkoutSchedule = {
-  id: '1',
-  title: '조깅 모임',
-  date: '2024-04-05',
-  time: '07:00',
-  location: '한강공원',
-  maxParticipants: 10,
-  currentParticipants: 3,
-  description: '한강공원에서 함께 조깅하실 분을 모집합니다!',
-  createdBy: '김철수'
-};
-
-const mockComments: Comment[] = [
-  {
-    id: '1',
-    author: '이영희',
-    content: '저도 참여하고 싶습니다!',
-    createdAt: '2024-04-01 14:30'
-  },
-  {
-    id: '2',
-    author: '박지성',
-    content: '초보자도 참여 가능한가요?',
-    createdAt: '2024-04-01 15:00'
-  }
-];
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import ScheduleInfo from '@/components/ScheduleInfo';
+import CommentSection from '@/components/CommentSection';
+import { scheduleApi, WorkoutSchedule, Comment } from '@/api/schedule';
 
 export default function ScheduleDetailPage({ params }: { params: { id: string } }) {
-  const [schedule] = useState<WorkoutSchedule>(mockSchedule);
-  const [comments, setComments] = useState<Comment[]>(mockComments);
+  const router = useRouter();
+  const [schedule, setSchedule] = useState<WorkoutSchedule | null>(null);
+  const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
   const [isParticipating, setIsParticipating] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleParticipate = () => {
-    if (schedule.currentParticipants < schedule.maxParticipants) {
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const [scheduleData, commentsData] = await Promise.all([
+          scheduleApi.getSchedule(params.id),
+          scheduleApi.getComments(params.id)
+        ]);
+        setSchedule(scheduleData);
+        setComments(commentsData);
+      } catch (err) {
+        setError('데이터를 불러오는데 실패했습니다.');
+        console.error('Error fetching data:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [params.id]);
+
+  const handleParticipate = async () => {
+    if (!schedule) return;
+    
+    try {
+      await scheduleApi.participateSchedule(schedule.id);
       setIsParticipating(true);
-      // TODO: 서버에 참여 요청 보내기
+      // 참여자 수 업데이트
+      setSchedule(prev => prev ? {
+        ...prev,
+        currentParticipants: prev.currentParticipants + 1
+      } : null);
       alert('참여 신청이 완료되었습니다!');
+    } catch (err) {
+      alert('참여 신청에 실패했습니다. 다시 시도해주세요.');
+      console.error('Error participating:', err);
     }
   };
 
-  const handleCommentSubmit = (e: React.FormEvent) => {
+  const handleCommentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newComment.trim()) return;
+    if (!newComment.trim() || !schedule) return;
 
-    const comment: Comment = {
-      id: Date.now().toString(),
-      author: '현재 사용자', // TODO: 실제 사용자 정보로 대체
-      content: newComment,
-      createdAt: new Date().toLocaleString()
-    };
-
-    setComments([...comments, comment]);
-    setNewComment('');
+    try {
+      const comment = await scheduleApi.createComment(schedule.id, {
+        content: newComment
+      });
+      setComments([...comments, comment]);
+      setNewComment('');
+    } catch (err) {
+      alert('댓글 작성에 실패했습니다. 다시 시도해주세요.');
+      console.error('Error creating comment:', err);
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-4xl mx-auto text-center">
+          <div className="text-xl text-gray-600">로딩 중...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !schedule) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-4xl mx-auto">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
+            <p className="text-red-500">{error || '일정을 찾을 수 없습니다.'}</p>
+            <button
+              onClick={() => router.push('/board/reservation')}
+              className="mt-4 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+            >
+              목록으로 돌아가기
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
-        {/* 일정 정보 */}
-        <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
-          <div className="flex items-center gap-4 mb-6">
-            <Logo />
-            <h1 className="text-3xl font-bold text-gray-900">
-              {schedule.title}
-            </h1>
-          </div>
+        <ScheduleInfo
+          title={schedule.title}
+          date={schedule.date}
+          time={schedule.time}
+          location={schedule.location}
+          maxParticipants={schedule.maxParticipants}
+          currentParticipants={schedule.currentParticipants}
+          description={schedule.description}
+          createdBy={schedule.createdBy}
+          isParticipating={isParticipating}
+          onParticipate={handleParticipate}
+        />
 
-          <div className="space-y-4 mb-6">
-            <div className="flex items-center text-gray-600">
-              <FaCalendarAlt className="mr-3" />
-              {schedule.date}
-            </div>
-            <div className="flex items-center text-gray-600">
-              <FaClock className="mr-3" />
-              {schedule.time}
-            </div>
-            <div className="flex items-center text-gray-600">
-              <FaMapMarkerAlt className="mr-3" />
-              {schedule.location}
-            </div>
-            <div className="flex items-center text-gray-600">
-              <FaUsers className="mr-3" />
-              {schedule.currentParticipants}/{schedule.maxParticipants}명 참여
-            </div>
-          </div>
-
-          <p className="text-gray-700 mb-6">
-            {schedule.description}
-          </p>
-
-          <div className="flex justify-between items-center">
-            <div className="text-sm text-gray-500">
-              작성자: {schedule.createdBy}
-            </div>
-            <button
-              onClick={handleParticipate}
-              disabled={isParticipating || schedule.currentParticipants >= schedule.maxParticipants}
-              className={`px-6 py-2 rounded-lg ${
-                isParticipating || schedule.currentParticipants >= schedule.maxParticipants
-                  ? 'bg-gray-300 cursor-not-allowed'
-                  : 'bg-blue-500 hover:bg-blue-600 text-white'
-              }`}
-            >
-              {isParticipating ? '참여 신청 완료' : '참여하기'}
-            </button>
-          </div>
-        </div>
-
-        {/* 댓글 섹션 */}
-        <div className="bg-white rounded-xl shadow-lg p-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
-            <FaComment className="mr-2" />
-            댓글
-          </h2>
-
-          {/* 댓글 작성 폼 */}
-          <form onSubmit={handleCommentSubmit} className="mb-8">
-            <textarea
-              value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
-              placeholder="댓글을 입력하세요..."
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 mb-2"
-              rows={3}
-            />
-            <button
-              type="submit"
-              className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600"
-            >
-              댓글 작성
-            </button>
-          </form>
-
-          {/* 댓글 목록 */}
-          <div className="space-y-4">
-            {comments.map((comment) => (
-              <div key={comment.id} className="border-b border-gray-200 pb-4">
-                <div className="flex justify-between items-start mb-2">
-                  <div className="flex items-center">
-                    <FaUser className="mr-2 text-gray-500" />
-                    <span className="font-semibold">{comment.author}</span>
-                  </div>
-                  <span className="text-sm text-gray-500">{comment.createdAt}</span>
-                </div>
-                <p className="text-gray-700">{comment.content}</p>
-              </div>
-            ))}
-          </div>
-        </div>
+        <CommentSection
+          comments={comments}
+          newComment={newComment}
+          onCommentChange={setNewComment}
+          onSubmit={handleCommentSubmit}
+        />
       </div>
     </div>
   );

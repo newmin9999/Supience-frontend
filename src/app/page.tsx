@@ -2,6 +2,7 @@
 import React from 'react';
 import { FaBullhorn, FaComments, FaQuestionCircle, FaCalendarAlt } from 'react-icons/fa';
 import BoardCard from '@/components/BoardCard';
+import Logo from '@/components/Logo';
 
 const boards = [
   {
@@ -42,13 +43,8 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 mb-4">
-            게시판 목록
-          </h1>
-          <p className="text-lg text-gray-600">
-            원하시는 게시판을 선택해주세요
-          </p>
+        <div className="flex justify-center mb-12">
+          <Logo size="xl" />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

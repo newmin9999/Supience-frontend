@@ -2,7 +2,7 @@ import { CreatePostRequest, UpdatePostRequest } from '@/types/board';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api';
 
-export const api = {
+export const boardApi = {
   // 게시글 목록 조회
   async getPosts(boardType: string, page: number = 0, size: number = 10) {
     const response = await fetch(

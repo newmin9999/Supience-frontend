@@ -8,9 +8,6 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install
 
-# 소스 코드 복사
-COPY . .
-
 # 개발 서버 포트 설정
 EXPOSE 3000
 

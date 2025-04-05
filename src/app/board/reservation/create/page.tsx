@@ -4,8 +4,8 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { FaCalendarAlt, FaClock, FaMapMarkerAlt, FaUsers } from 'react-icons/fa';
 import Logo from '@/components/Logo';
-import FormInput from '@/components/FormInput';
-import { createSchedule, CreateScheduleRequest } from '@/api/schedule';
+import FormInput, { FormInputProps } from '@/components/FormInput';
+import { CreateScheduleRequest, scheduleApi } from '@/api/schedule';
 
 export default function CreateSchedulePage() {
   const router = useRouter();
@@ -16,7 +16,7 @@ export default function CreateSchedulePage() {
     description: '',
     startTime: '',
     endTime: '',
-    maxParticipants: 2
+    maxParticipants: 0 // 0은 제한 없음을 의미
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -29,11 +29,11 @@ export default function CreateSchedulePage() {
         title: formData.title,
         description: formData.description,
         startTime: formData.startTime,
-        endTime: formData.endTime,
+        endTime: formData.endTime || formData.startTime,
         maxParticipants: formData.maxParticipants,
       };
 
-      await createSchedule(scheduleData);
+      await scheduleApi.createSchedule(scheduleData);
       router.push('/board/reservation');
     } catch (err) {
       setError('일정 생성에 실패했습니다. 다시 시도해주세요.');
@@ -43,7 +43,7 @@ export default function CreateSchedulePage() {
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
@@ -51,7 +51,7 @@ export default function CreateSchedulePage() {
     }));
   };
 
-  const formFields = [
+  const formFields: FormInputProps[] = [
     {
       label: '제목',
       name: 'title',
@@ -69,22 +69,29 @@ export default function CreateSchedulePage() {
       icon: FaCalendarAlt,
     },
     {
-      label: '종료 시간',
+      label: '종료 시간 (선택)',
       name: 'endTime',
       type: 'datetime-local',
       value: formData.endTime,
-      required: true,
+      required: false,
       min: new Date().toISOString().slice(0, 16),
       icon: FaClock,
+      placeholder: '종료 시간을 선택하지 않으면 시작 시간으로 설정됩니다',
     },
     {
       label: '최대 참여 인원',
       name: 'maxParticipants',
-      type: 'number',
+      type: 'select',
       value: formData.maxParticipants,
       required: true,
-      min: '2',
       icon: FaUsers,
+      options: [
+        { value: 0, label: '제한 없음' },
+        ...Array.from({ length: 30 }, (_, i) => ({
+          value: i + 1,
+          label: `${i + 1}명`
+        }))
+      ]
     },
     {
       label: '설명',
@@ -99,18 +106,6 @@ export default function CreateSchedulePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-2xl mx-auto">
-        <div className="text-center mb-8">
-          <div className="flex justify-center mb-4">
-            <Logo />
-          </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            운동 일정 등록
-          </h1>
-          <p className="text-lg text-gray-600">
-            함께 운동할 친구를 모집해보세요
-          </p>
-        </div>
-
         {error && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
             <p className="text-red-500">{error}</p>
