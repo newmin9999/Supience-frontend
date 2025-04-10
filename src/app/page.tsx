@@ -3,7 +3,7 @@ import React from 'react';
 import { FaBullhorn, FaComments, FaQuestionCircle, FaCalendarAlt } from 'react-icons/fa';
 import BoardCard from '@/components/BoardCard';
 import Logo from '@/components/Logo';
-
+import AuthButtons from '@/components/AuthButtons';
 const boards = [
   {
     href: '/board/notices',
@@ -43,10 +43,10 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
-        <div className="flex justify-center mb-12">
+        <div className="flex justify-between mb-10">
           <Logo size="xl" />
+          <AuthButtons isLoggedIn={false} className="flex items-center space-x-2 px-4 py-1" />
         </div>
-
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {boards.map((board) => (
             <BoardCard
