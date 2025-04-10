@@ -1,12 +1,17 @@
+'use client';
+
+import { useSession } from 'next-auth/react';
 import { FiLogIn, FiUserPlus, FiUser } from 'react-icons/fi';
 import Link from 'next/link';
 
 interface AuthButtonsProps {
-  isLoggedIn: boolean;
   className?: string;
 }
 
-const AuthButtons: React.FC<AuthButtonsProps> = ({ isLoggedIn, className = '' }) => {
+const AuthButtons: React.FC<AuthButtonsProps> = ({ className = '' }) => {
+  const { data: session, status } = useSession();
+  const isLoggedIn = !!session;
+  
   return (
     <div className={`flex-1 flex justify-center space-x-8 ${className}`}>
       {isLoggedIn ? (

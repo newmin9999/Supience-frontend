@@ -54,7 +54,7 @@ export default function BoardLayout({
                 ))}
               </nav>
             </div>
-            <AuthButtons isLoggedIn={false} />
+            <AuthButtons />
           </div>
         </div>
         <div className="bg-white rounded-lg shadow-lg p-6">

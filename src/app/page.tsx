@@ -45,7 +45,7 @@ export default function Home() {
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between mb-10">
           <Logo size="xl" />
-          <AuthButtons isLoggedIn={false} className="flex items-center space-x-2 px-4 py-1" />
+          <AuthButtons className="flex items-center space-x-2 px-4 py-1" />
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {boards.map((board) => (
