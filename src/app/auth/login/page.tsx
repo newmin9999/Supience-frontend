@@ -3,9 +3,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Logo from '@/components/Logo';
-import Cookies from 'js-cookie';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://localhost:8443';
+const API_URL = 'https://localhost:8443';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -22,13 +21,13 @@ export default function LoginPage() {
     const password = formData.get('password') as string;
 
     try {
-      const response = await fetch(`${API_URL}/api/v1/users/login`, {
+      const response = await fetch(`${API_URL}/api/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ username, password }),
-        credentials: 'include', // 쿠키를 포함하여 요청
+        body: JSON.stringify({ loginId: username, password }),
+        credentials: 'include', // 쿠키를 포함하여 요청하고 응답에서 쿠키를 받습니다
       });
 
       if (!response.ok) {
@@ -37,14 +36,7 @@ export default function LoginPage() {
         return;
       }
 
-      const data = await response.json();
-      
-      // 사용자 정보를 쿠키에 저장
-      Cookies.set('user', JSON.stringify(data.data), {
-        expires: 30, // 30일
-        path: '/',
-      });
-
+      // 로그인 성공 시 메인 페이지로 이동
       router.push('/');
     } catch (err) {
       setError('로그인 중 오류가 발생했습니다.');

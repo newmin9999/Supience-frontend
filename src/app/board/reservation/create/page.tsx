@@ -1,107 +1,14 @@
 'use client';
 
-import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { FaCalendarAlt, FaClock, FaMapMarkerAlt, FaUsers } from 'react-icons/fa';
-import Logo from '@/components/Logo';
-import FormInput, { FormInputProps } from '@/components/FormInput';
-import { CreateScheduleRequest, scheduleApi } from '@/api/schedule';
+import FormInput from '@/components/FormInput';
+import { useScheduleForm } from '@/hooks/useScheduleForm';
+import { getScheduleFormFields } from '@/components/schedule/ScheduleFormFields';
 
 export default function CreateSchedulePage() {
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    startTime: '',
-    endTime: '',
-    maxParticipants: 0 // 0은 제한 없음을 의미
-  });
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
-
-    try {
-      const scheduleData: CreateScheduleRequest = {
-        title: formData.title,
-        description: formData.description,
-        startTime: formData.startTime,
-        endTime: formData.endTime || formData.startTime,
-        maxParticipants: formData.maxParticipants,
-      };
-
-      await scheduleApi.createSchedule(scheduleData);
-      router.push('/board/reservation');
-    } catch (err) {
-      setError('일정 생성에 실패했습니다. 다시 시도해주세요.');
-      console.error('Error creating schedule:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: name === 'maxParticipants' ? parseInt(value) : value
-    }));
-  };
-
-  const formFields: FormInputProps[] = [
-    {
-      label: '제목',
-      name: 'title',
-      type: 'text',
-      value: formData.title,
-      required: true,
-    },
-    {
-      label: '시작 시간',
-      name: 'startTime',
-      type: 'datetime-local',
-      value: formData.startTime,
-      required: true,
-      min: new Date().toISOString().slice(0, 16),
-      icon: FaCalendarAlt,
-    },
-    {
-      label: '종료 시간 (선택)',
-      name: 'endTime',
-      type: 'datetime-local',
-      value: formData.endTime,
-      required: false,
-      min: new Date().toISOString().slice(0, 16),
-      icon: FaClock,
-      placeholder: '종료 시간을 선택하지 않으면 시작 시간으로 설정됩니다',
-    },
-    {
-      label: '최대 참여 인원',
-      name: 'maxParticipants',
-      type: 'select',
-      value: formData.maxParticipants,
-      required: true,
-      icon: FaUsers,
-      options: [
-        { value: 0, label: '제한 없음' },
-        ...Array.from({ length: 30 }, (_, i) => ({
-          value: i + 1,
-          label: `${i + 1}명`
-        }))
-      ]
-    },
-    {
-      label: '설명',
-      name: 'description',
-      type: 'textarea',
-      value: formData.description,
-      required: true,
-      rows: 4,
-    },
-  ];
+  const { formData, loading, error, handleSubmit, handleChange } = useScheduleForm();
+  const formFields = getScheduleFormFields(formData);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4 sm:px-6 lg:px-8">
@@ -122,7 +29,6 @@ export default function CreateSchedulePage() {
               />
             ))}
 
-            {/* 버튼 */}
             <div className="flex justify-end space-x-4">
               <button
                 type="button"
