@@ -1,31 +1,35 @@
 export interface Schedule {
   id: number;
   title: string;
-  description: string;
-  startTime: string;
-  endTime: string;
+  date: string;
+  time: string;
+  location: string;
   maxParticipants: number;
   currentParticipants: number;
+  description: string;
+  createdBy: string;
+  participants: string[];
 }
 
 export interface ApiResponse<T> {
   success: boolean;
-  message: string;
   data: T;
-} 
+  message?: string;
+}
 
 export interface CreateScheduleRequest {
   title: string;
-  description: string;
-  startTime: string;
-  endTime?: string;
+  date: string;
+  time: string;
+  location: string;
   maxParticipants: number;
+  description: string;
 }
 
 export interface Comment {
   id: string;
-  author: string;
   content: string;
+  createdBy: string;
   createdAt: string;
 }
 

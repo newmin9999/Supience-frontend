@@ -3,7 +3,8 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Logo from '@/components/Logo';
-import api from '@/api/fetch';
+import { http } from '@/api/api';
+import { SignupResponse } from '@/types/auth';
 
 export default function SignupPage() {
   const router = useRouter();
@@ -17,7 +18,7 @@ export default function SignupPage() {
     setError('');
 
     try {
-      const { data } = await api.post('/auth/signup', { loginId: id, password, name });
+      const data = await http.post('/auth/signup', { loginId: id, password, name }) as SignupResponse;
 
       if (data.success) {
         // 회원가입 성공

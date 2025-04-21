@@ -1,28 +1,15 @@
 import { FaCalendarAlt, FaClock, FaMapMarkerAlt, FaUsers } from 'react-icons/fa';
 import Logo from './Logo';
+import { Schedule } from '@/types/schedule';
 
 interface ScheduleInfoProps {
-  title: string;
-  date: string;
-  time: string;
-  location: string;
-  maxParticipants: number;
-  currentParticipants: number;
-  description: string;
-  createdBy: string;
+  schedule: Schedule;
   isParticipating: boolean;
   onParticipate: () => void;
 }
 
 export default function ScheduleInfo({
-  title,
-  date,
-  time,
-  location,
-  maxParticipants,
-  currentParticipants,
-  description,
-  createdBy,
+  schedule,
   isParticipating,
   onParticipate
 }: ScheduleInfoProps) {
@@ -31,42 +18,42 @@ export default function ScheduleInfo({
       <div className="flex items-center gap-4 mb-6">
         <Logo />
         <h1 className="text-3xl font-bold text-gray-900">
-          {title}
+          {schedule.title}
         </h1>
       </div>
 
       <div className="space-y-4 mb-6">
         <div className="flex items-center text-gray-600">
           <FaCalendarAlt className="mr-3" />
-          {date}
+          {schedule.date}
         </div>
         <div className="flex items-center text-gray-600">
           <FaClock className="mr-3" />
-          {time}
+          {schedule.time}
         </div>
         <div className="flex items-center text-gray-600">
           <FaMapMarkerAlt className="mr-3" />
-          {location}
+          {schedule.location}
         </div>
         <div className="flex items-center text-gray-600">
           <FaUsers className="mr-3" />
-          {currentParticipants}/{maxParticipants}명 참여
+          {schedule.currentParticipants}/{schedule.maxParticipants}명 참여
         </div>
       </div>
 
       <p className="text-gray-700 mb-6">
-        {description}
+        {schedule.description}
       </p>
 
       <div className="flex justify-between items-center">
         <div className="text-sm text-gray-500">
-          작성자: {createdBy}
+          작성자: {schedule.createdBy}
         </div>
         <button
           onClick={onParticipate}
-          disabled={isParticipating || currentParticipants >= maxParticipants}
+          disabled={isParticipating || schedule.currentParticipants >= schedule.maxParticipants}
           className={`px-6 py-2 rounded-lg ${
-            isParticipating || currentParticipants >= maxParticipants
+            isParticipating || schedule.currentParticipants >= schedule.maxParticipants
               ? 'bg-gray-300 cursor-not-allowed'
               : 'bg-blue-500 hover:bg-blue-600 text-white'
           }`}

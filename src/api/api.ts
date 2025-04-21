@@ -9,7 +9,7 @@ const api = axios.create({
   },
 });
 
-export const http = {
+export const http = { 
   get: async <T>(endpoint: string, params?: Record<string, any>) => {
     const { data } = await api.get<T>(endpoint, { params });
     return data;
