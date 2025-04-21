@@ -3,10 +3,11 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Logo from '@/components/Logo';
+import api from '@/api/fetch';
 
 export default function SignupPage() {
   const router = useRouter();
-  const [email, setEmail] = useState('');
+  const [id, setId] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [error, setError] = useState('');
@@ -16,17 +17,9 @@ export default function SignupPage() {
     setError('');
 
     try {
-      const response = await fetch('https://localhost:8443/api/v1/users/signup', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password, name }),
-      });
+      const { data } = await api.post('/auth/signup', { loginId: id, password, name });
 
-      const data = await response.json();
-
-      if (response.ok) {
+      if (data.success) {
         // 회원가입 성공
         localStorage.setItem('user', JSON.stringify(data.data));
         router.push('/');
@@ -63,19 +56,19 @@ export default function SignupPage() {
           )}
           <div className="rounded-md shadow-sm -space-y-px">
             <div>
-              <label htmlFor="email-address" className="sr-only">
-                이메일
+              <label htmlFor="id" className="sr-only">
+                아이디
               </label>
               <input
-                id="email-address"
-                name="email"
-                type="email"
-                autoComplete="email"
+                id="id"
+                name="id"
+                type="text"
+                autoComplete="username"
                 required
                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="이메일"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                placeholder="아이디"
+                value={id}
+                onChange={(e) => setId(e.target.value)}
               />
             </div>
             <div>
