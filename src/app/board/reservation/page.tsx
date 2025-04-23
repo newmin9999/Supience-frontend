@@ -17,9 +17,6 @@ export default function ReservationPage() {
           <h1 className="text-2xl font-bold text-gray-900 mb-2">
             운동 일정
           </h1>
-          <p className="text-lg text-gray-600">
-            함께 운동할 친구를 찾아보세요
-          </p>
         </div>
         <Link 
           href="/board/reservation/create"

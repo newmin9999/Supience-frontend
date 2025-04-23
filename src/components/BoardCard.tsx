@@ -6,7 +6,6 @@ interface BoardCardProps {
   href: string;
   icon: IconType;
   title: string;
-  description: string;
   iconColor: string;
   bgColor: string;
 }
@@ -15,7 +14,6 @@ export default function BoardCard({
   href,
   icon: Icon,
   title,
-  description,
   iconColor,
   bgColor,
 }: BoardCardProps) {
@@ -26,7 +24,6 @@ export default function BoardCard({
           <Icon className={`w-6 h-6 ${iconColor}`} />
         </div>
         <h2 className="text-xl font-semibold text-gray-900 mb-2">{title}</h2>
-        <p className="text-gray-600">{description}</p>
       </div>
     </Link>
   );
