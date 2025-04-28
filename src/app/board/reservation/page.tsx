@@ -5,10 +5,10 @@ import { Schedule } from '../../../types/schedule';
 import ScheduleCard from '@/components/ScheduleCard';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import ErrorAlert from '@/components/ErrorAlert';
-import { useSchedule } from '@/hooks/useSchedule';
+import { useScheduleList } from '@/hooks/useSchedule';
 
 export default function ReservationPage() {
-  const { schedules, loading, error, fetchSchedules } = useSchedule();
+  const { schedules, loading, error, fetchSchedules } = useScheduleList();
 
   return (
     <div>

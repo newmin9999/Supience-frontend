@@ -1,8 +1,9 @@
 export const INITIAL_FORM_DATA = {
   title: '',
   description: '',
-  startTime: '',
-  endTime: '',
+  date: '',
+  time: '',
+  location: '',
   maxParticipants: 0 // 0은 제한 없음을 의미
 };
 

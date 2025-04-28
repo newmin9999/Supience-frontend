@@ -1,121 +1,188 @@
 'use client';
-import React, { useState } from 'react';
+
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import Logo from '@/components/Logo';
-import { http } from '@/api/api';
-import { SignupResponse } from '@/types/auth';
+import { PageLayout } from '@/components/layouts/PageLayout';
+import Input from '@/components/common/Input';
+import Button from '@/components/common/Button';
+import Alert from '@/components/common/Alert';
+import { authApi } from '@/api/auth';
+import { SignupRequest, SignupResponse } from '@/types/auth';
+
+// 유효성 검사 함수들
+const validateLoginId = (value: string): string | null => {
+  if (!value) return '아이디는 필수입니다.';
+  if (!/^[a-zA-Z0-9]{4,20}$/.test(value)) return '아이디는 영문과 숫자로 4~20자리여야 합니다.';
+  return null;
+};
+
+const validatePassword = (value: string): string | null => {
+  if (!value) return '비밀번호는 필수입니다.';
+  if (value.length < 8 || value.length > 20) return '비밀번호는 8~20자리여야 합니다.';
+  if (!/^(?=.*[a-zA-Z])(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{8,20}$/.test(value)) {
+    return '비밀번호는 영문, 숫자, 특수문자를 포함해야 합니다.';
+  }
+  return null;
+};
+
+const validateName = (value: string): string | null => {
+  if (!value) return '이름은 필수입니다.';
+  if (!/^[가-힣]{2,10}$/.test(value)) return '이름은 한글로 2~10자리여야 합니다.';
+  return null;
+};
+
+const validateEmail = (value: string): string | null => {
+  if (!value) return null; // 이메일은 선택사항
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return '올바른 이메일 형식이어야 합니다.';
+  return null;
+};
+
+const SIGNUP_FIELDS = [
+  {
+    id: 'loginId' as const,
+    type: 'text',
+    autoComplete: 'username',
+    placeholder: '아이디 (영문과 숫자로 4~20자리)',
+    validate: validateLoginId
+  },
+  {
+    id: 'name' as const,
+    type: 'text',
+    autoComplete: 'name',
+    placeholder: '이름 (한글로 2~10자리)',
+    validate: validateName
+  },
+  {
+    id: 'email' as const,
+    type: 'email',
+    autoComplete: 'email',
+    placeholder: '이메일 (선택사항)',
+    validate: validateEmail
+  },
+  {
+    id: 'password' as const,
+    type: 'password',
+    autoComplete: 'new-password',
+    placeholder: '비밀번호 (영문, 숫자, 특수문자 포함 8~20자리)',
+    validate: validatePassword
+  }
+] as const;
 
 export default function SignupPage() {
   const router = useRouter();
-  const [id, setId] = useState('');
-  const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
-  const [error, setError] = useState('');
+  const [formData, setFormData] = useState<SignupRequest>({
+    loginId: '',
+    name: '',
+    email: '',
+    password: ''
+  });
+  const [errors, setErrors] = useState<Partial<Record<keyof SignupRequest, string>>>({});
+  const [loading, setLoading] = useState(false);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+    
+    // 필드별 유효성 검사
+    const field = SIGNUP_FIELDS.find(f => f.id === name);
+    if (field && field.validate) {
+      const error = field.validate(value);
+      setErrors(prev => ({
+        ...prev,
+        [name]: error || ''
+      }));
+    }
+  };
+
+  const validateForm = (): boolean => {
+    const newErrors: Partial<Record<keyof SignupRequest, string>> = {};
+    let isValid = true;
+
+    SIGNUP_FIELDS.forEach(field => {
+      if (field.validate) {
+        const error = field.validate(formData[field.id]);
+        if (error) {
+          newErrors[field.id] = error;
+          isValid = false;
+        }
+      }
+    });
+
+    setErrors(newErrors);
+    return isValid;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    
+    if (!validateForm()) {
+      return;
+    }
+    
+    setLoading(true);
 
     try {
-      const data = await http.post('/auth/signup', { loginId: id, password, name }) as SignupResponse;
-
-      if (data.success) {
-        // 회원가입 성공
-        localStorage.setItem('user', JSON.stringify(data.data));
-        router.push('/');
+      const response = await authApi.signup(formData) as SignupResponse;
+      if (response.success) {
+        router.push('/auth/login');
       } else {
-        // 회원가입 실패
-        setError(data.message || '회원가입에 실패했습니다.');
+        setErrors({ loginId: response.message || '회원가입에 실패했습니다.' });
       }
     } catch (err) {
-      setError('서버와 통신 중 오류가 발생했습니다.');
-      console.error(err);
+      setErrors({ loginId: '회원가입 중 오류가 발생했습니다.' });
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div className="flex flex-col items-center">
-          <Logo size="lg" />
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            회원가입
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            또는{' '}
-            <Link href="/auth/login" className="font-medium text-blue-600 hover:text-blue-500">
-              로그인
-            </Link>
-          </p>
-        </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          {error && (
-            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
-              <span className="block sm:inline">{error}</span>
-            </div>
-          )}
-          <div className="rounded-md shadow-sm -space-y-px">
-            <div>
-              <label htmlFor="id" className="sr-only">
-                아이디
-              </label>
-              <input
-                id="id"
-                name="id"
-                type="text"
-                autoComplete="username"
-                required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="아이디"
-                value={id}
-                onChange={(e) => setId(e.target.value)}
-              />
-            </div>
-            <div>
-              <label htmlFor="name" className="sr-only">
-                이름
-              </label>
-              <input
-                id="name"
-                name="name"
-                type="text"
-                autoComplete="name"
-                required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="이름"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-              />
-            </div>
-            <div>
-              <label htmlFor="password" className="sr-only">
-                비밀번호
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="new-password"
-                required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="비밀번호 (8자 이상)"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
-          </div>
-
+    <PageLayout>
+      <div className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-md w-full space-y-8">
           <div>
-            <button
-              type="submit"
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-            >
+            <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
               회원가입
-            </button>
+            </h2>
           </div>
-        </form>
+          <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+            <div className="space-y-4">
+              {SIGNUP_FIELDS.map(field => (
+                <div key={field.id}>
+                  <Input
+                    id={field.id}
+                    name={field.id}
+                    type={field.type}
+                    autoComplete={field.autoComplete}
+                    required={field.id !== 'email'} // 이메일은 선택사항
+                    placeholder={field.placeholder}
+                    value={formData[field.id]}
+                    onChange={handleChange}
+                    error={errors[field.id]}
+                  />
+                </div>
+              ))}
+            </div>
+            <div>
+              <Button
+                type="submit"
+                fullWidth
+                disabled={loading}
+              >
+                {loading ? '처리중...' : '회원가입'}
+              </Button>
+            </div>
+            <div className="text-sm text-center">
+              <Link href="/auth/login" className="font-medium text-indigo-600 hover:text-indigo-500">
+                이미 계정이 있으신가요? 로그인
+              </Link>
+            </div>
+          </form>
+        </div>
       </div>
-    </div>
+    </PageLayout>
   );
 } 

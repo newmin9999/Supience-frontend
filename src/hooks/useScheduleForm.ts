@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { CreateScheduleRequest, scheduleApi } from '@/api/schedule';
+import { scheduleApi } from '@/api/schedule';
+import { CreateScheduleRequest } from '@/types/schedule';
 import { INITIAL_FORM_DATA } from '@/constants/schedule';
 
 export const useScheduleForm = () => {
@@ -17,10 +18,11 @@ export const useScheduleForm = () => {
     try {
       const scheduleData: CreateScheduleRequest = {
         title: formData.title,
-        description: formData.description,
-        startTime: formData.startTime,
-        endTime: formData.endTime || formData.startTime,
+        date: formData.date,
+        time: formData.time,
+        location: formData.location,
         maxParticipants: formData.maxParticipants,
+        description: formData.description,
       };
 
       await scheduleApi.createSchedule(scheduleData);

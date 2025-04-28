@@ -1,101 +1,72 @@
 import { useState, useEffect } from 'react';
 import { scheduleApi } from '@/api/schedule';
-import { Schedule, Comment } from '@/types/schedule';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/contexts/AuthContext';
+import { Schedule } from '@/types/schedule';
 
-export function useSchedule(scheduleId?: string) {
-  const { user } = useAuth();
+// 단일 일정 조회 훅
+export const useSchedule = (scheduleId: string) => {
   const [schedule, setSchedule] = useState<Schedule | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const { isAuthenticated } = useAuth();
+
+  useEffect(() => {
+    const fetchSchedule = async () => {
+      try {
+        const scheduleData = await scheduleApi.getSchedule(scheduleId);
+        setSchedule(scheduleData);
+      } catch (error) {
+        setError('일정을 불러오는데 실패했습니다.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSchedule();
+  }, [scheduleId]);
+
+  // 사용자 ID는 서버에서 세션을 통해 관리되므로,
+  // 클라이언트에서는 인증 상태만 확인
+  const isParticipating = isAuthenticated && schedule?.participants?.includes('current-user-id');
+  const canJoin = isAuthenticated && !isParticipating && (schedule?.participants?.length || 0) < (schedule?.maxParticipants || 0);
+
+  return {
+    schedule,
+    loading,
+    error,
+    isParticipating,
+    canJoin
+  };
+};
+
+// 일정 목록 조회 훅
+export const useScheduleList = () => {
   const [schedules, setSchedules] = useState<Schedule[]>([]);
-  const [comments, setComments] = useState<Comment[]>([]);
-  const [isParticipating, setIsParticipating] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const fetchSchedules = async () => {
     try {
       setLoading(true);
-      setError(null);
       const response = await scheduleApi.getSchedules();
-      setSchedules(response.data);
-    } catch (err) {
-      setError('운동 일정을 불러오는데 실패했습니다.');
-      console.error('Error fetching schedules:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchSchedule = async () => {
-    if (!scheduleId) return;
-    
-    try {
-      setLoading(true);
+      setSchedules(response.data || []);
       setError(null);
-      const [scheduleData, commentsData] = await Promise.all([
-        scheduleApi.getSchedule(scheduleId),
-        scheduleApi.getComments(scheduleId)
-      ]);
-      setSchedule(scheduleData);
-      setComments(commentsData);
-      setIsParticipating(scheduleData.participants.includes(user?.id || ''));
-    } catch (err) {
-      setError('데이터를 불러오는데 실패했습니다.');
-      console.error('Error fetching data:', err);
+    } catch (error) {
+      console.error('일정 목록 조회 실패:', error);
+      setError('일정 목록을 불러오는데 실패했습니다.');
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    if (scheduleId) {
-      fetchSchedule();
-    } else {
-      fetchSchedules();
-    }
-  }, [scheduleId]);
-
-  const handleParticipate = async () => {
-    if (!schedule) return;
-    
-    try {
-      await scheduleApi.participateSchedule(schedule.id.toString());
-      setIsParticipating(true);
-      setSchedule(prev => prev ? {
-        ...prev,
-        currentParticipants: prev.currentParticipants + 1
-      } : null);
-    } catch (err) {
-      setError('참여 신청에 실패했습니다.');
-      console.error('Error participating:', err);
-    }
-  };
-
-  const handleCommentSubmit = async (content: string) => {
-    if (!content.trim() || !schedule) return false;
-
-    try {
-      const comment = await scheduleApi.createComment(schedule.id.toString(), {
-        content
-      });
-      setComments(prev => [...prev, comment]);
-      return true;
-    } catch (err) {
-      setError('댓글 작성에 실패했습니다.');
-      console.error('Error creating comment:', err);
-      return false;
-    }
-  };
+    fetchSchedules();
+  }, []);
 
   return {
-    schedule,
     schedules,
-    comments,
-    isParticipating,
     loading,
     error,
-    handleParticipate,
-    handleCommentSubmit,
     fetchSchedules
   };
-} 
+}; 

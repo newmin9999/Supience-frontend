@@ -1,14 +1,40 @@
 import { http } from './api';
-import { LoginRequest, LoginResponse } from '../types/auth';
+
+export interface LoginRequest {
+  loginId: string;
+  password: string;
+}
+
+export interface SignupRequest {
+  email: string;
+  password: string;
+  name: string;
+}
+
+export interface LoginResponse {
+  success: boolean;
+  message?: string;
+  userId?: string;
+  userName?: string;
+}
+
+export interface SignupResponse {
+  success: boolean;
+  message?: string;
+}
+
+export interface LogoutResponse {
+  success: boolean;
+  message?: string;
+}
 
 export const authApi = {
   // 로그인
-  async login(data: LoginRequest): Promise<LoginResponse> {
-    return http.post<LoginResponse>('/auth/login', data);
-  },
+  login: (data: LoginRequest) => http.post<LoginResponse>('/auth/login', data),
 
   // 회원가입
-  async signup(loginId: string, password: string, name: string) {
-    return http.post('/auth/signup', { loginId, password, name });
-  },
+  signup: (data: SignupRequest) => http.post<SignupResponse>('/auth/signup', data),
+  
+  // 로그아웃
+  logout: () => http.post<LogoutResponse>('/auth/logout', {}),
 };
